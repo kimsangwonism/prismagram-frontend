@@ -1,11 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 import { Link, withRouter } from "react-router-dom";
-import { gql } from "apollo-boost";
 import Input from "./Input";
 import useInput from "../Hooks/useInput";
 import { Compass, HeartEmpty, User, Logo } from "./Icons";
 import { useQuery } from "react-apollo-hooks";
+import { ME } from "../SharedQueries";
 
 const Header = styled.header`
   width: 100%;
@@ -20,6 +20,7 @@ const Header = styled.header`
   justify-content: center;
   align-items: center;
   padding: 25px 0px;
+  z-index: 2;
 `;
 
 const HeaderWrapper = styled.div`
@@ -62,54 +63,48 @@ const HeaderLink = styled(Link)`
   }
 `;
 
-
-const ME = gql`
-    {
-        me {
-            username
-        }
-    }
-`;
-
 export default withRouter(({ history }) => {
-    const search = useInput("");
-    const { data } = useQuery(ME);
-    const onSearchSubmit = e => {
-        e.preventDefault();
-        history.push(`/search?term=${search.value}`);
-    };
-    return (
-        <Header>
-        <HeaderWrapper>
-            <HeaderColumn>
-            <Link to="/">
-                <Logo />
-            </Link>
-            </HeaderColumn>
-            <HeaderColumn>
-            <form onSubmit={onSearchSubmit}>
-                <SearchInput {...search} placeholder="Search" />
-            </form>
-            </HeaderColumn>
-            <HeaderColumn>
-            <HeaderLink to="/explore">
-                <Compass />
+  const search = useInput("");
+  const { data } = useQuery(ME);
+  const onSearchSubmit = e => {
+    e.preventDefault();
+    history.push(`/search?term=${search.value}`);
+  };
+  return (
+    <Header>
+      <HeaderWrapper>
+        <HeaderColumn>
+          <Link to="/">
+            <Logo />
+          </Link>
+        </HeaderColumn>
+        <HeaderColumn>
+          <form onSubmit={onSearchSubmit}>
+            <SearchInput
+              value={search.value}
+              onChange={search.onChange}
+              placeholder="Search"
+            />
+          </form>
+        </HeaderColumn>
+        <HeaderColumn>
+          <HeaderLink to="/explore">
+            <Compass />
+          </HeaderLink>
+          <HeaderLink to="/notifications">
+            <HeartEmpty />
+          </HeaderLink>
+          {!data.me ? (
+            <HeaderLink to="/#">
+              <User />
             </HeaderLink>
-            <HeaderLink to="/notifications">
-                <HeartEmpty />
+          ) : (
+            <HeaderLink to={data.me.username}>
+              <User />
             </HeaderLink>
-            {!data.me ? (
-                <HeaderLink to="/#">
-                    <User />
-                </HeaderLink>
-            ) : (
-                <HeaderLink to={data.me.username}>
-                    <User />
-                </HeaderLink>
-            )}
-            </HeaderColumn>
-        </HeaderWrapper>
-        </Header>
-    );
-})
-  
+          )}
+        </HeaderColumn>
+      </HeaderWrapper>
+    </Header>
+  );
+});
